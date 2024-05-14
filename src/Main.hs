@@ -1,27 +1,49 @@
-import Graphics.Gloss
+-- Define a data type for representing operators
+data Operator = Add | Subtract | Multiply | Divide deriving (Show, Eq)
 
+-- Define a function to convert a string representation of an operator to its corresponding Operator type
+operatorFromString :: String -> Operator
+operatorFromString "+" = Add
+operatorFromString "-" = Subtract
+operatorFromString "*" = Multiply
+operatorFromString "/" = Divide
+operatorFromString _ = error "Invalid operator"
+
+-- Define a function to determine the precedence of an operator
+precedence :: Operator -> Int
+precedence Add = 1
+precedence Subtract = 1
+precedence Multiply = 2
+precedence Divide = 2
+
+-- Define a function to check if a string represents a number
+isNumber :: String -> Bool
+isNumber s = case reads s :: [(Double, String)] of
+  [(_, "")] -> True
+  _         -> False
+
+-- Define a function to convert an infix expression to a postfix expression using the Shunting Yard algorithm
+infixToPostfix :: [String] -> [String]
+infixToPostfix tokens = go tokens [] []
+  where
+    go :: [String] -> [String] -> [Operator] -> [String]
+    go [] output stack = output ++ map show (reverse stack)
+    go (token:rest) output stack
+      | isNumber token = go rest (output ++ [token]) stack
+      | token == "(" = go rest output (operatorFromString token : stack)
+      | token == ")" =
+          let (output', stack') = span (/= Add) stack
+          in go rest (output ++ map show output') (tail stack')
+      | token `elem` ["+", "-", "*", "/"] =
+          let (greaterEq, stack') = span (\op -> precedence op >= precedence (operatorFromString token)) stack
+          in go rest (output ++ map show greaterEq) (operatorFromString token : stack')
+      | otherwise = error $ "Invalid token: " ++ token
+
+-- Example usage:
 main :: IO ()
-main = do   
-    -- Display the combined pictures
-    let combinedPictures = chessboard 
-    display 
-        (InWindow "Chessboard" (450, 450) (500, 500)) -- Window properties
-        black                                    -- Background color 
-        combinedPictures                         -- Picture to display
-
--- Define the chessboard pattern
-chessboard :: Picture
-chessboard = Pictures [drawSquare x y | x <- [1..8], y <- [1..8]]
-
--- Function to draw a single square of the chessboard
-drawSquare :: Int -> Int -> Picture
-drawSquare x y = Translate (fromIntegral x * 50 - 225) (fromIntegral y * 50 - 225) $ 
-                 Color (if even (x + y) then darkBrown else lightBrown) $
-                 rectangleSolid 50 50
-
--- Define custom colors
-darkBrown :: Color
-darkBrown = makeColorI 139 69 19 255  -- Saddle Brown
- 
-lightBrown :: Color
-lightBrown = makeColorI 244 164 96 255 -- Sandy Brown
+main = do
+  let expression = "2 * 2 + 7 + 8"
+  let tokens = words expression
+  let postfix = infixToPostfix tokens
+  putStrLn $ "Expression: " ++ expression
+  putStrLn $ "Postfix: " ++ unwords postfix
