@@ -1,5 +1,5 @@
 -- Define a data type for representing operators
-data Operator = Add | Subtract | Multiply | Divide | OpenParen | CloseParen deriving (Show, Eq)
+data Operator = Add | Subtract | Multiply | Divide | Power | OpenParen | CloseParen deriving (Show, Eq)
 
 -- Define a function to convert a string representation of an operator to its corresponding Operator type
 operatorFromString :: String -> Operator
@@ -7,6 +7,7 @@ operatorFromString "+" = Add
 operatorFromString "-" = Subtract
 operatorFromString "*" = Multiply
 operatorFromString "/" = Divide
+operatorFromString "^" = Power
 operatorFromString "(" = OpenParen
 operatorFromString ")" = CloseParen
 operatorFromString _ = error "Invalid operator"
@@ -17,6 +18,7 @@ precedence Add = 1
 precedence Subtract = 1
 precedence Multiply = 2
 precedence Divide = 2
+precedence Power = 3
 precedence OpenParen = 0
 precedence CloseParen = 0
 
@@ -39,7 +41,7 @@ infixToPostfix tokens = go tokens [] []
               then error "Mismatched parentheses"
               else go rest (output ++ reverse output') (tail stack')
       | isNumber token = go rest (output ++ [token]) stack
-      | token `elem` ["+", "-", "*", "/"] =
+      | token `elem` ["+", "-", "*", "/", "^"] =
           let currentOp = operatorFromString token
               (greaterEq, stack') = span (\op -> precedence (operatorFromString op) >= precedence currentOp) stack
           in go rest (output ++ reverse greaterEq) (token : stack')
@@ -51,6 +53,7 @@ performOp Add = (+)
 performOp Subtract = (-)
 performOp Multiply = (*)
 performOp Divide = (/)
+performOp Power = (**)
 performOp _ = error "Invalid operator"
 
 -- Define a function to evaluate a postfix expression
@@ -59,7 +62,7 @@ evaluatePostfix tokens = head $ foldl foldFunc [] tokens
   where
     foldFunc :: [Double] -> String -> [Double]
     foldFunc (x:y:ys) token
-      | token `elem` ["+", "-", "*", "/"] =
+      | token `elem` ["+", "-", "*", "/", "^"] =
           let op = operatorFromString token
           in (performOp op y x) : ys
     foldFunc xs token
@@ -69,7 +72,7 @@ evaluatePostfix tokens = head $ foldl foldFunc [] tokens
 -- Example usage:
 main :: IO ()
 main = do
-  let expression = "2.2 * 2 + ( 7 + 8 )"
+  let expression = "2.2 * 2 + ( 7 + 8 ) ^ 2"
   
   let tokens = words expression
   
