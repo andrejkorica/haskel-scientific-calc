@@ -45,12 +45,38 @@ infixToPostfix tokens = go tokens [] []
           in go rest (output ++ reverse greaterEq) (token : stack')
       | otherwise = error $ "Invalid token: " ++ token
 
+-- Define a function to perform an operation on two operands
+performOp :: Operator -> Double -> Double -> Double
+performOp Add = (+)
+performOp Subtract = (-)
+performOp Multiply = (*)
+performOp Divide = (/)
+performOp _ = error "Invalid operator"
+
+-- Define a function to evaluate a postfix expression
+evaluatePostfix :: [String] -> Double
+evaluatePostfix tokens = head $ foldl foldFunc [] tokens
+  where
+    foldFunc :: [Double] -> String -> [Double]
+    foldFunc (x:y:ys) token
+      | token `elem` ["+", "-", "*", "/"] =
+          let op = operatorFromString token
+          in (performOp op y x) : ys
+    foldFunc xs token
+      | isNumber token = (read token :: Double) : xs
+      | otherwise = error $ "Invalid token: " ++ token
 
 -- Example usage:
 main :: IO ()
 main = do
-  let expression = "2 * 2 + ( 7 + 8 )"
+  let expression = "2.2 * 2 + ( 7 + 8 )"
+  
   let tokens = words expression
+  
   let postfix = infixToPostfix tokens
+
+  let result = evaluatePostfix postfix
+
   putStrLn $ "Expression: " ++ expression
   putStrLn $ "Postfix: " ++ unwords postfix
+  putStrLn $ "Result: " ++ show result
