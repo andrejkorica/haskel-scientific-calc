@@ -1,85 +1,75 @@
--- Define a data type for representing operators
-data Operator = Add | Subtract | Multiply | Divide | Power | OpenParen | CloseParen deriving (Show, Eq)
+import Text.Printf
 
--- Define a function to convert a string representation of an operator to its corresponding Operator type
-operatorFromString :: String -> Operator
-operatorFromString "+" = Add
-operatorFromString "-" = Subtract
-operatorFromString "*" = Multiply
-operatorFromString "/" = Divide
-operatorFromString "^" = Power
-operatorFromString "(" = OpenParen
-operatorFromString ")" = CloseParen
-operatorFromString _ = error "Invalid operator"
+prec :: String -> Int
+prec "^" = 4
+prec "*" = 3
+prec "/" = 3
+prec "+" = 2
+prec "-" = 2
+prec _   = 0
 
--- Define a function to determine the precedence of an operator
-precedence :: Operator -> Int
-precedence Add = 1
-precedence Subtract = 1
-precedence Multiply = 2
-precedence Divide = 2
-precedence Power = 3
-precedence OpenParen = 0
-precedence CloseParen = 0
+leftAssoc :: String -> Bool
+leftAssoc "^" = False
+leftAssoc _ = True
 
--- Define a function to check if a string represents a number
-isNumber :: String -> Bool
-isNumber s = case reads s :: [(Double, String)] of
-  [(_, "")] -> True
-  _         -> False
+isOp :: String -> Bool
+isOp [t] = t `elem` "-+/*^"
+isOp _ = False
 
-infixToPostfix :: [String] -> [String]
-infixToPostfix tokens = go tokens [] []
+simSYA :: [String] -> [([String], [String], String)]
+simSYA xs = final <> [lastStep]
   where
-    go :: [String] -> [String] -> [String] -> [String]
-    go [] output stack = output ++ reverse stack
-    go (token:rest) output stack
-      | token == "(" = go rest output (token : stack)
-      | token == ")" =
-          let (output', stack') = break (== "(") stack
-          in if null stack'
-              then error "Mismatched parentheses"
-              else go rest (output ++ reverse output') (tail stack')
-      | isNumber token = go rest (output ++ [token]) stack
-      | token `elem` ["+", "-", "*", "/", "^"] =
-          let currentOp = operatorFromString token
-              (greaterEq, stack') = span (\op -> precedence (operatorFromString op) >= precedence currentOp) stack
-          in go rest (output ++ reverse greaterEq) (token : stack')
-      | otherwise = error $ "Invalid token: " ++ token
+    final = scanl f ([], [], "") xs
+    lastStep =
+      ( \(x, y, _) ->
+          (reverse y <> x, [], "")
+      )
+        $ last final
+    f (out, st, _) t
+      | isOp t =
+        ( reverse (takeWhile testOp st) <> out,
+          t : dropWhile testOp st,
+          t
+        )
+      | t == "(" = (out, "(" : st, t)
+      | t == ")" =
+        ( reverse (takeWhile (/= "(") st) <> out,
+          tail $ dropWhile (/= "(") st,
+          t
+        )
+      | otherwise = (t : out, st, t)
+      where
+        testOp x =
+          isOp x
+            && ( leftAssoc t && prec t == prec x
+                   || prec t < prec x
+               )
 
--- Define a function to perform an operation on two operands
-performOp :: Operator -> Double -> Double -> Double
-performOp Add = (+)
-performOp Subtract = (-)
-performOp Multiply = (*)
-performOp Divide = (/)
-performOp Power = (**)
-performOp _ = error "Invalid operator"
-
--- Define a function to evaluate a postfix expression
-evaluatePostfix :: [String] -> Double
-evaluatePostfix tokens = head $ foldl foldFunc [] tokens
+evalPostfix :: [String] -> Double
+evalPostfix expr = head $ foldl eval [] expr
   where
-    foldFunc :: [Double] -> String -> [Double]
-    foldFunc (x:y:ys) token
-      | token `elem` ["+", "-", "*", "/", "^"] =
-          let op = operatorFromString token
-          in (performOp op y x) : ys
-    foldFunc xs token
-      | isNumber token = (read token :: Double) : xs
-      | otherwise = error $ "Invalid token: " ++ token
+    eval :: [Double] -> String -> [Double]
+    eval (x:y:ys) "+" = (y + x) : ys
+    eval (x:y:ys) "-" = (y - x) : ys
+    eval (x:y:ys) "*" = (y * x) : ys
+    eval (x:y:ys) "/" = (y / x) : ys
+    eval (x:y:ys) "^" = (y ** x) : ys
+    eval stack numStr = read numStr : stack
 
--- Example usage:
 main :: IO ()
 main = do
   let expression = "2.2 * 2 + ( 7 + 8 ) ^ 2"
-  
-  let tokens = words expression
-  
-  let postfix = infixToPostfix tokens
+      result = last $ simSYA $ words expression
+      finalResult = unwords (reverse $ fst3 result) ++ " " ++ unwords (snd3 result) ++ " " ++ trd3 result
+  printf "%s\n" finalResult
+  print (evalPostfix (words finalResult))
 
-  let result = evaluatePostfix postfix
 
-  putStrLn $ "Expression: " ++ expression
-  putStrLn $ "Postfix: " ++ unwords postfix
-  putStrLn $ "Result: " ++ show result
+fst3 :: (a, b, c) -> a
+fst3 (x, _, _) = x
+
+snd3 :: (a, b, c) -> b
+snd3 (_, y, _) = y
+
+trd3 :: (a, b, c) -> c
+trd3 (_, _, z) = z
