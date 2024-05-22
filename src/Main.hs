@@ -69,7 +69,7 @@ evalPostfix expr = head $ foldl eval [] expr
     eval (x:y:ys) "^" = (y ** x) : ys
     eval (x:ys) op@('l':'o':'g':_) =
       let base = fromMaybe 10 (stripPrefix "log" op >>= readMaybe :: Maybe Double)
-      in (logBase base x) : ys
+      in logBase base x : ys
     eval stack numStr = read numStr : stack
 
 tokenize :: String -> [String]
@@ -78,10 +78,10 @@ tokenize s@(c:cs)
   | c `elem` " \t" = tokenize cs
   | c `elem` "()+-*/^" = [c] : tokenize cs
   | c == 'l' =
-      let (logOp, rest) = break (== '(') s
-      in if take 3 logOp == "log"
-         then logOp : tokenize (drop (length logOp) rest)
-         else error "Invalid token"
+    let (logOp, rest) = break (== '(') s
+    in if take 3 logOp == "log"
+       then logOp : tokenize (drop (length logOp) rest)
+       else error "Invalid token"
   | isDigit c || c == '.' =
       let (num, rest) = span (\x -> isDigit x || x == '.') s
       in num : tokenize rest
@@ -94,7 +94,7 @@ readMaybe str = case reads str of
 
 main :: IO ()
 main = do
-  let expression = "log5( 2.2 ) * 2 + ( 7 + 8 ) ^ 2"
+  let expression = "log5(   2.2 + 5.5 ) * 2 + ( 7 + 8 ) ^ 2"
       tokens = tokenize expression
       result = last $ simSYA tokens
       finalResult = unwords (reverse $ fst3 result) ++ " " ++ unwords (snd3 result) ++ " " ++ trd3 result
