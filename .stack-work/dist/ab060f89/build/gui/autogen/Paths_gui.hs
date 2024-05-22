@@ -46,12 +46,12 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
-bindir     = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\bin"
-libdir     = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\lib\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0-9QePWBljgOvIWb7VneCBlf-gui"
-dynlibdir  = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\lib\\x86_64-windows-ghc-9.6.4"
-datadir    = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\share\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0"
-libexecdir = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\libexec\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0"
-sysconfdir = "C:\\Users\\koric\\Desktop\\gui\\.stack-work\\install\\efbb814a\\etc"
+bindir     = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\bin"
+libdir     = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\lib\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0-9QePWBljgOvIWb7VneCBlf-gui"
+dynlibdir  = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\lib\\x86_64-windows-ghc-9.6.4"
+datadir    = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\share\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0"
+libexecdir = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\libexec\\x86_64-windows-ghc-9.6.4\\gui-0.1.0.0"
+sysconfdir = "C:\\Users\\koric\\Desktop\\haskel-scientific-calc\\.stack-work\\install\\efbb814a\\etc"
 
 getBinDir     = catchIO (getEnv "gui_bindir")     (\_ -> return bindir)
 getLibDir     = catchIO (getEnv "gui_libdir")     (\_ -> return libdir)
