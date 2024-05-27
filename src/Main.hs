@@ -12,43 +12,25 @@ prec "/" = 3
 prec "+" = 2
 prec "-" = 2
 prec "log" = 5
-prec "ln" = 5
-prec "log2" = 5
-prec "2^x" = 5
-prec "x^e" = 5
-prec "e^x" = 5
 prec _ = 0
 
 -- Define associativity for operators
 leftAssoc :: String -> Bool
 leftAssoc "^" = False
 leftAssoc "log" = False
-leftAssoc "ln" = False
-leftAssoc "log2" = False
-leftAssoc "2^x" = False
-leftAssoc "x^e" = False
-leftAssoc "e^x" = False
 leftAssoc _ = True
 
 -- Check if a string is an operator
 isOp :: String -> Bool
 isOp [t] = t `elem` "-+/*^"
 isOp ('l' : 'o' : 'g' : _) = True
-isOp "ln" = True
-isOp "log2" = True
-isOp "2^x" = True
-isOp "x^e" = True
-isOp "e^x" = True
 isOp _ = False
 
 -- Parse logarithm
 parseLog :: String -> (String, Double)
-parseLog s
-  | take 2 s == "ln" = ("ln", exp 1)
-  | s == "log2" = ("log2", 2)
-  | otherwise =
-      let modVal = fromMaybe 10 (stripPrefix "log" s >>= readMaybe)
-       in ("log", modVal)
+parseLog s =
+  let modVal = fromMaybe 10 (stripPrefix "log" s >>= readMaybe)
+   in ("log", modVal)
 
 -- Simulate Shunting Yard Algorithm
 simSYA :: [String] -> [([String], [String], String)]
@@ -64,7 +46,7 @@ simSYA xs = final <> [lastStep]
       | isOp t =
           let (op, _) = parseLog t
            in ( reverse (takeWhile testOp st) <> out,
-                (if op `elem` ["log", "ln", "log2", "2^x", "x^e", "e^x"] then t else op) : dropWhile testOp st,
+                (if op == "log" then t else op) : dropWhile testOp st,
                 t
               )
       | t == "(" = (out, "(" : st, t)
@@ -92,11 +74,6 @@ evalPostfix expr = head $ foldl eval [] expr
     eval (x : y : ys) "*" = (y * x) : ys
     eval (x : y : ys) "/" = (y / x) : ys
     eval (x : y : ys) "^" = (y ** x) : ys
-    eval (x : ys) "ln" = log x : ys
-    eval (x : ys) "log2" = logBase 2 x : ys
-    eval (x : ys) "2^x" = (2 ** x) : ys
-    eval (x : ys) "x^e" = (x ** exp 1) : ys
-    eval (x : ys) "e^x" = (exp x) : ys
     eval (x : ys) op@('l' : 'o' : 'g' : _) =
       let base = fromMaybe 10 (stripPrefix "log" op >>= readMaybe :: Maybe Double)
        in logBase base x : ys
@@ -108,9 +85,9 @@ tokenize "" = []
 tokenize s@(c : cs)
   | c `elem` " \t" = tokenize cs
   | c `elem` "()+-*/^" = [c] : tokenize cs
-  | c == 'l' || c == '2' || c == 'x' || c == 'e' =
+  | c == 'l' =
       let (logOp, rest) = break (== '(') s
-       in if take 3 logOp == "log" || logOp == "ln" || logOp == "log2" || logOp == "2^x" || logOp == "x^e" || logOp == "e^x"
+       in if take 3 logOp == "log"
             then logOp : tokenize (drop (length logOp) rest)
             else error "Invalid token"
   | isDigit c || c == '.' =
