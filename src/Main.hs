@@ -114,14 +114,14 @@ initialState = CalculatorState {displayText = "", postfixExpr = Nothing, evalRes
 
 -- Main function
 main :: IO ()
-main = playIO (InWindow "Scientific calculator" (400, 500) (10, 10)) white 60 initialState render handleEvent update
+main = playIO (InWindow "Scientific calculator" (400, 550) (10, 10)) white 60 initialState render handleEvent update
 
 -- Render function
 render :: CalculatorState -> IO Picture
 render calcState = return $ Pictures [calculator, displayTextPicture]
   where
     calculator = Pictures [drawButton (x, y) size label | (x, y, size, label) <- buttonData]
-    displayTextPicture = Translate (-160) 250 $ Scale 0.2 0.2 $ Text (displayText calcState)
+    displayTextPicture = Translate (-180) 200 $ Scale 0.25 0.25 $ Text (displayText calcState)
 
 -- Handle events
 handleEvent :: Event -> CalculatorState -> IO CalculatorState
@@ -170,9 +170,10 @@ drawButton (x, y) size label =
     textWidth = case label of
       "log" -> 60
       "ln" -> 40
-      "log2" -> 70
+      "DEL" -> 40
+      "log2" -> 60
       "2^x" -> 60
-      "x^e" -> 60
+      "x^y" -> 60
       "e^x" -> 60
       _ -> fromIntegral $ length label * 35
     textHeight = 35
@@ -180,31 +181,33 @@ drawButton (x, y) size label =
 -- Button data
 buttonData :: [(Float, Float, Float, String)]
 buttonData =
-  [ (-150, 100, 80, "1"),
-    (-50, 100, 80, "2"),
-    (50, 100, 80, "3"),
-    (150, 100, 80, "+"),
-    (-150, 0, 80, "4"),
-    (-50, 0, 80, "5"),
-    (50, 0, 80, "6"),
-    (150, 0, 80, "-"),
-    (-150, -100, 80, "7"),
-    (-50, -100, 80, "8"),
-    (50, -100, 80, "9"),
-    (150, -100, 80, "*"),
-    (-150, -200, 80, "C"),
-    (-50, -200, 80, "0"),
-    (50, -200, 80, "."),
-    (150, -200, 80, "/"),
-    (-150, -300, 80, "("),
-    (-50, -300, 80, ")"),
-    (50, -300, 80, "log"),
-    (150, -300, 80, "ln"),
-    (-150, -400, 80, "log2"),
-    (-50, -400, 80, "2^x"),
-    (50, -400, 80, "x^e"),
-    (150, -400, 80, "e^x"),
-    (150, 200, 80, "=") -- Adjusted "=" button position
+  [ (-150, 150, 65, "e"),
+    (-75, 150, 65, "("),
+    (0, 150, 65, ")"),
+    (75, 150, 65, "C"),
+    (150, 150, 65, "DEL"),
+    (-150, 75, 65, "x^y"),
+    (-75, 75, 65, "7"),
+    (0, 75, 65, "8"),
+    (75, 75, 65, "9"),
+    (150, 75, 65, "/"),
+    (-150, 0, 65, "e^x"),
+    (-75, 0, 65, "4"),
+    (0, 0, 65, "5"),
+    (75, 0, 65, "6"),
+    (150, 0, 65, "*"),
+    (-150, -75, 65, "log"),
+    (-75, -75, 65, "1"),
+    (0, -75, 65, "2"),
+    (75, -75, 65, "3"),
+    (150, -75, 65, "-"),
+    (-150, -150, 65, "ln"),
+    (-75, -150, 65, "0"),
+    (0, -150, 65, "."),
+    (75, -150, 65, "="),
+    (150, -150, 65, "+"),
+    (-150, -225, 65, "2^x"),
+    (-75, -225, 65, "log2")
   ]
 
 -- Utility functions to get elements from a tuple
