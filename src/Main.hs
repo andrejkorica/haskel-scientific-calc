@@ -105,12 +105,13 @@ readMaybe str = case reads str of
 data CalculatorState = CalculatorState
   { displayText :: String,
     postfixExpr :: Maybe [String],
-    evalResult :: Maybe Double
+    evalResult :: Maybe Double,
+    pressedButton :: Maybe String
   }
 
 -- Initial state
 initialState :: CalculatorState
-initialState = CalculatorState {displayText = "", postfixExpr = Nothing, evalResult = Nothing}
+initialState = CalculatorState {displayText = "", postfixExpr = Nothing, evalResult = Nothing, pressedButton = Nothing}
 
 -- Main function
 main :: IO ()
@@ -120,16 +121,21 @@ main = playIO (InWindow "Scientific calculator" (400, 550) (10, 10)) white 60 in
 render :: CalculatorState -> IO Picture
 render calcState = return $ Pictures [calculator, displayTextPicture]
   where
-    calculator = Pictures [drawButton (x, y) size label | (x, y, size, label) <- buttonData]
+    calculator = Pictures [drawButton (x, y) size label (pressedButton calcState == Just label) | (x, y, size, label) <- buttonData]
     displayTextPicture = Translate (-180) 200 $ Scale 0.25 0.25 $ Text (displayText calcState)
 
 -- Handle events
 handleEvent :: Event -> CalculatorState -> IO CalculatorState
+handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y)) calcState = do
+  let clickedButton = findClickedButton (x, y)
+  return $ case clickedButton of
+    Just label -> calcState {pressedButton = Just label}
+    Nothing -> calcState
 handleEvent (EventKey (MouseButton LeftButton) Up _ (x, y)) calcState = do
   let clickedButton = findClickedButton (x, y)
   return $ case clickedButton of
-    Just label -> updateDisplay label calcState
-    Nothing -> calcState
+    Just label -> updateDisplay label calcState {pressedButton = Nothing}
+    Nothing -> calcState {pressedButton = Nothing}
 handleEvent _ calcState = return calcState
 
 -- Update function
@@ -157,16 +163,15 @@ findClickedButton (x, y) =
         (_, _, _, label) : _ -> Just label
 
 -- Draw button
-drawButton :: (Float, Float) -> Float -> String -> Picture
-drawButton (x, y) size label =
+drawButton :: (Float, Float) -> Float -> String -> Bool -> Picture
+drawButton (x, y) size label isPressed =
   Translate x y $
     Pictures
-      [ Color buttonColor $ rectangleSolid size size,
+      [ Color (if isPressed then makeColorI 150 150 150 255 else makeColorI 200 200 200 255) $ rectangleSolid size size,
         Color black $ rectangleWire size size,
         Translate (-textWidth / 2) (-textHeight / 2) $ Scale 0.2 0.2 $ Text label
       ]
   where
-    buttonColor = makeColorI 200 200 200 255
     textWidth = case label of
       "log" -> 60
       "ln" -> 40
