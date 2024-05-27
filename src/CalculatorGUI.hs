@@ -1,9 +1,18 @@
-module CalculatorGUI (main, render, handleEvent, update) where
+module CalculatorGUI (render, handleEvent, update, initialState) where
 
 import Graphics.Gloss.Interface.IO.Game
+    ( black,
+      rectangleSolid,
+      rectangleWire,
+      makeColorI,
+      Key(MouseButton),
+      KeyState(Up, Down),
+      MouseButton(LeftButton),
+      Event(EventKey),
+      Picture(Text, Pictures, Color, Translate, Scale) )
 import InfixPostfix
 import ExpressionConverter (tokenize)
-import Utils (fst3, snd3, trd3)  -- Import utility functions
+import Utils (fst3, snd3)  -- Import utility functions
 
 -- Calculator State
 
@@ -18,9 +27,6 @@ data CalculatorState = CalculatorState
 initialState :: CalculatorState
 initialState = CalculatorState {displayText = "", postfixExpr = Nothing, evalResult = Nothing, pressedButton = Nothing}
 
--- Main function
-main :: IO ()
-main = playIO (InWindow "Scientific calculator" (400, 550) (10, 10)) white 60 initialState render handleEvent update
 
 -- Render function
 render :: CalculatorState -> IO Picture
@@ -55,8 +61,8 @@ updateDisplay label calcState
       let tokens = tokenize (displayText calcState)
           result = last $ simSYA tokens
           postfix = reverse $ fst3 result ++ snd3 result
-          evalResult = evalPostfix postfix
-       in calcState {postfixExpr = Just postfix, evalResult = Just evalResult, displayText = show evalResult}
+          resultValue = evalPostfix postfix
+       in calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
   | otherwise = calcState {displayText = displayText calcState ++ label}
 
 -- Find clicked button
@@ -74,7 +80,7 @@ drawButton (x, y) size label isPressed =
     Pictures
       [ Color (if isPressed then makeColorI 150 150 150 255 else makeColorI 200 200 200 255) $ rectangleSolid size size,
         Color black $ rectangleWire size size,
-        Translate (-textWidth / 2) (-textHeight / 2) $ Scale 0.2 0.2 $ Text label
+        Translate (- (textWidth / 2)) (- (textHeight / 2)) $ Scale 0.2 0.2 $ Text label
       ]
   where
     textWidth = case label of

@@ -1,6 +1,7 @@
-module Main where
+module Main (main) where
 
-import CalculatorGUI (main)
+import Graphics.Gloss.Interface.IO.Game (playIO, white, Display(..))
+import CalculatorGUI (render, handleEvent, update, initialState)
 
 main :: IO ()
-main = CalculatorGUI.main
+main = playIO (InWindow "Scientific calculator" (400, 550) (10, 10)) white 60 initialState render handleEvent update
