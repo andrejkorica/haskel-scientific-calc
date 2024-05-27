@@ -18,6 +18,10 @@ extra-source-files:  README.md
 executable gui
   hs-source-dirs:      src
   main-is:             Main.hs
+  other-modules:       CalculatorGUI
+                       ExpressionConverter
+                       InfixPostfix
+                       Utils
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5,
                        gloss
