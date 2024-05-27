@@ -1,3 +1,4 @@
 .stack-work/
 yesod-mysql.cabal
 *~
+bash.exe.stackdump
