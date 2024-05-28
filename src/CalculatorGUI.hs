@@ -72,7 +72,12 @@ updateDisplay label calcState
           postfix = reverse $ fst3 result ++ snd3 result
           resultValue = evalPostfix postfix
        in calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
+  | not (null (displayText calcState)) && isOperator (last (displayText calcState)) && isOperator (head label) = calcState
   | otherwise = calcState {displayText = displayText calcState ++ label}
+
+-- Check if a character is an operator
+isOperator :: Char -> Bool
+isOperator c = c `elem` ['+', '-', '*', '/', '^','.']
 
 -- Find clicked button
 findClickedButton :: (Float, Float) -> Maybe String
