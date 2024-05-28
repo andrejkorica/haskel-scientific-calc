@@ -1,18 +1,19 @@
 module CalculatorGUI (render, handleEvent, update, initialState) where
 
-import Graphics.Gloss.Interface.IO.Game
-    ( black,
-      rectangleSolid,
-      rectangleWire,
-      makeColorI,
-      Key(MouseButton),
-      KeyState(Up, Down),
-      MouseButton(LeftButton),
-      Event(EventKey),
-      Picture(Text, Pictures, Color, Translate, Scale) )
-import InfixPostfix
 import ExpressionConverter (tokenize)
-import Utils (fst3, snd3)  -- Import utility functions
+import Graphics.Gloss.Interface.IO.Game
+  ( Event (EventKey),
+    Key (MouseButton),
+    KeyState (Down, Up),
+    MouseButton (LeftButton),
+    Picture (Color, Pictures, Scale, Text, Translate),
+    black,
+    makeColorI,
+    rectangleSolid,
+    rectangleWire,
+  )
+import InfixPostfix
+import Utils (fst3, snd3) -- Import utility functions
 
 -- Calculator State
 
@@ -26,7 +27,6 @@ data CalculatorState = CalculatorState
 -- Initial state
 initialState :: CalculatorState
 initialState = CalculatorState {displayText = "", postfixExpr = Nothing, evalResult = Nothing, pressedButton = Nothing}
-
 
 -- Render function
 render :: CalculatorState -> IO Picture
@@ -57,6 +57,12 @@ update _ = return
 updateDisplay :: String -> CalculatorState -> CalculatorState
 updateDisplay label calcState
   | label == "C" = calcState {displayText = "", postfixExpr = Nothing, evalResult = Nothing}
+  | label == "DEL" =
+      let newText =
+            if null (displayText calcState)
+              then ""
+              else init (displayText calcState)
+       in calcState {displayText = newText}
   | label == "=" =
       let tokens = tokenize (displayText calcState)
           result = last $ simSYA tokens
@@ -80,7 +86,7 @@ drawButton (x, y) size label isPressed =
     Pictures
       [ Color (if isPressed then makeColorI 150 150 150 255 else makeColorI 200 200 200 255) $ rectangleSolid size size,
         Color black $ rectangleWire size size,
-        Translate (- (textWidth / 2)) (- (textHeight / 2)) $ Scale 0.2 0.2 $ Text label
+        Translate (-(textWidth / 2)) (-(textHeight / 2)) $ Scale 0.2 0.2 $ Text label
       ]
   where
     textWidth = case label of
