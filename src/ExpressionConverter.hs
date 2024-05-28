@@ -17,10 +17,12 @@ tokenize s@(c : cs)
   | c == 'l' =
       let (funOperator, rest) = break (== '(') s
        in if take 3 funOperator == "log" || funOperator == "ln"
-            then let rest' = dropWhile (`elem` " \t") rest
-                 in trace ("Tokenizing function operator: " ++ funOperator) $ funOperator : tokenize rest'
+            then
+              let rest' = dropWhile (`elem` " \t") rest
+               in trace ("Tokenizing function operator: " ++ funOperator) $ funOperator : tokenize rest'
             else error "Invalid token"
   | isDigit c || c == '.' =
       let (num, rest) = span (\x -> isDigit x || x == '.') s
        in trace ("Tokenizing number: " ++ num) $ num : tokenize rest
+  | c == 'e' = trace ("Tokenizing constant: e") $ "2.71828182846" : tokenize cs
   | otherwise = error "Invalid token"
