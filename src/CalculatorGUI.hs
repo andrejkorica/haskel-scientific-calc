@@ -77,7 +77,7 @@ updateDisplay label calcState
 
 -- Check if a character is an operator
 isOperator :: Char -> Bool
-isOperator c = c `elem` ['+', '-', '*', '/', '^','.']
+isOperator c = c `elem` ['+', '*', '/', '^','.']
 
 -- Find clicked button
 findClickedButton :: (Float, Float) -> Maybe String
