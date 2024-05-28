@@ -63,6 +63,9 @@ updateDisplay label calcState
               then ""
               else init (displayText calcState)
        in calcState {displayText = newText}
+  | label == "x^y" = calcState {displayText = displayText calcState ++ "^"}
+  | label == "2^x" = calcState {displayText = displayText calcState ++ "2^"}
+  | label == "e^x" = calcState {displayText = displayText calcState ++ "e^"}
   | label == "=" =
       let tokens = tokenize (displayText calcState)
           result = last $ simSYA tokens
