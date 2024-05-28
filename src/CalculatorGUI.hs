@@ -67,11 +67,14 @@ updateDisplay label calcState
   | label == "2^x" = calcState {displayText = displayText calcState ++ "2^"}
   | label == "e^x" = calcState {displayText = displayText calcState ++ "e^"}
   | label == "=" =
-      let tokens = tokenize (displayText calcState)
-          result = last $ simSYA tokens
-          postfix = reverse $ fst3 result ++ snd3 result
-          resultValue = evalPostfix postfix
-       in calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
+      if null (displayText calcState)
+      then calcState {displayText = "0.0", evalResult = Just 0.0}
+      else
+        let tokens = tokenize (displayText calcState)
+            result = last $ simSYA tokens
+            postfix = reverse $ fst3 result ++ snd3 result
+            resultValue = evalPostfix postfix
+         in calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
   | not (null (displayText calcState)) && isOperator (last (displayText calcState)) && isOperator (head label) = calcState
   | otherwise = calcState {displayText = displayText calcState ++ label}
 
