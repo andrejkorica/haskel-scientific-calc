@@ -4,16 +4,12 @@ import Graphics.Gloss.Interface.IO.Game (playIO, white, Display(..))
 import CalculatorGUI (render, handleEvent, update, initialState)
 import InfixPostfix (simSYA, evalPostfix)
 import ExpressionConverter (tokenize)
-import Utils (fst3, snd3)
+import Utils (fst3)
 import Text.Printf (printf)
-
--- Define trd3 utility function
-trd3 :: (a, b, c) -> c
-trd3 (_, _, z) = z
 
 main :: IO ()
 main = do
-  let expression = "log5(5 + 2)"
+  let expression = "- 5 - 2"
       tokens = tokenize expression
       result = last $ simSYA tokens
       finalPostfix = reverse $ fst3 result
