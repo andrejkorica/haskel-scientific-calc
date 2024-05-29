@@ -1,4 +1,5 @@
 module InfixPostfix (prec, leftAssoc, isOp, parseLog, simSYA, evalPostfix, readMaybe) where
+
 import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe)
 
@@ -31,7 +32,7 @@ isOp _ = False
 parseLog :: String -> (String, Double)
 parseLog calcFuncStr
   | calcFuncStr == "ln" = ("ln", exp 1)
-  | otherwise = 
+  | otherwise =
       let modVal = fromMaybe 10 (stripPrefix "log" calcFuncStr >>= readMaybe)
        in ("log", modVal)
 
@@ -68,20 +69,27 @@ simSYA xs = final <> [lastStep]
                )
 
 -- Evaluate postfix expression
-evalPostfix :: [String] -> Double
-evalPostfix expr = head $ foldl eval [] expr
+evalPostfix :: [String] -> Either String Double
+evalPostfix expr =
+  case foldl eval (Right []) expr of
+    Right [result] -> Right result
+    Right _ -> Left "Error: Invalid expression"
+    Left err -> Left err
   where
-    eval :: [Double] -> String -> [Double]
-    eval (x : y : ys) "+" = (y + x) : ys
-    eval (x : y : ys) "-" = (y - x) : ys
-    eval (x : y : ys) "*" = (y * x) : ys
-    eval (x : y : ys) "/" = (y / x) : ys
-    eval (x : y : ys) "^" = (y ** x) : ys
-    eval (x : ys) "ln" = log x : ys
-    eval (x : ys) op@('l' : 'o' : 'g' : _) =
+    eval :: Either String [Double] -> String -> Either String [Double]
+    eval (Right (x : y : ys)) "+" = Right ((y + x) : ys)
+    eval (Right (x : y : ys)) "-" = Right ((y - x) : ys)
+    eval (Right (x : y : ys)) "*" = Right ((y * x) : ys)
+    eval (Right (x : y : ys)) "/" = if x /= 0 then Right ((y / x) : ys) else Left "Error: Division by zero"
+    eval (Right (x : y : ys)) "^" = Right ((y ** x) : ys)
+    eval (Right (x : ys)) "ln" = if x > 0 then Right (log x : ys) else Left "Error: Logarithm of non-positive number"
+    eval (Right (x : ys)) op@('l' : 'o' : 'g' : _) =
       let base = fromMaybe 10 (stripPrefix "log" op >>= readMaybe :: Maybe Double)
-       in logBase base x : ys
-    eval stack numStr = read numStr : stack
+       in if x > 0 then Right (logBase base x : ys) else Left "Error: Logarithm of non-positive number"
+    eval (Right stack) numStr = case readMaybe numStr of
+      Just num -> Right (num : stack)
+      Nothing -> Left "Error: Invalid number"
+    eval (Left err) _ = Left err
 
 -- Helper function to read a string as a number
 readMaybe :: (Read a) => String -> Maybe a

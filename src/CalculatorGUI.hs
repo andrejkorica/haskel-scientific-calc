@@ -53,6 +53,12 @@ handleEvent _ calcState = return calcState
 update :: Float -> CalculatorState -> IO CalculatorState
 update _ = return
 
+-- Check for invalid sequences
+isValidExpression :: String -> Bool
+isValidExpression expr = not (any invalidSequence (zip expr (tail expr)))
+  where
+    invalidSequence (a, b) = isOp [a] && isOp [b] && notElem b "()" || a == '(' && b == ')'
+
 -- Update display based on clicked button
 updateDisplay :: String -> CalculatorState -> CalculatorState
 updateDisplay label calcState
@@ -68,19 +74,21 @@ updateDisplay label calcState
   | label == "e^x" = calcState {displayText = displayText calcState ++ "e^"}
   | label == "=" =
       if null (displayText calcState)
-      then calcState {displayText = "0.0", evalResult = Just 0.0}
-      else
-        let tokens = tokenize (displayText calcState)
-            result = last $ simSYA tokens
-            postfix = reverse $ fst3 result ++ snd3 result
-            resultValue = evalPostfix postfix
-         in calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
+        then calcState {displayText = "Error: Empty expression", evalResult = Nothing}
+        else case tokenize (displayText calcState) of
+          Left errMsg -> calcState {displayText = errMsg, evalResult = Nothing}
+          Right tokens ->
+            let result = last $ simSYA tokens
+                postfix = reverse $ fst3 result ++ snd3 result
+             in case evalPostfix postfix of
+                  Left errorMsg -> calcState {displayText = errorMsg, evalResult = Nothing}
+                  Right resultValue -> calcState {postfixExpr = Just postfix, evalResult = Just resultValue, displayText = show resultValue}
   | not (null (displayText calcState)) && isOperator (last (displayText calcState)) && isOperator (head label) = calcState
   | otherwise = calcState {displayText = displayText calcState ++ label}
 
 -- Check if a character is an operator
 isOperator :: Char -> Bool
-isOperator c = c `elem` ['+', '*', '/', '^','.']
+isOperator c = c `elem` ['+', '*', '/', '^', '.']
 
 -- Find clicked button
 findClickedButton :: (Float, Float) -> Maybe String
