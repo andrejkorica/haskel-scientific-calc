@@ -1,6 +1,6 @@
 cabal-version:       2.2
 
-name:                gui
+name:                calculator
 version:             0.1.0.0
 -- synopsis:
 -- description:
@@ -15,7 +15,7 @@ build-type:          Simple
 extra-source-files:  README.md
                      CHANGELOG.md
 
-executable gui
+executable calculator
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       CalculatorGUI
