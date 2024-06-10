@@ -53,11 +53,6 @@ handleEvent _ calcState = return calcState
 update :: Float -> CalculatorState -> IO CalculatorState
 update _ = return
 
--- Check for invalid sequences
-isValidExpression :: String -> Bool
-isValidExpression expr = not (any invalidSequence (zip expr (tail expr)))
-  where
-    invalidSequence (a, b) = isOp [a] && isOp [b] && notElem b "()" || a == '(' && b == ')'
 
 -- Update display based on clicked button
 updateDisplay :: String -> CalculatorState -> CalculatorState
